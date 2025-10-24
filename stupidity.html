@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>green soul</title>
+<style>
+body {
+overflow: hidden;
+}
+
+canvas {
+position: absolute;
+top: 0;
+left: 0;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas"></canvas>
+<script>
+const canvas = document.getElementById("canvas");
+canvas.width = innerWidth;
+canvas.height = innerHeight;
+const ctx = canvas.getContext("2d");
+
+let size = 11;
+let boxSize = size * 20 + 5;
+
+let soul = [0, 0];
+let soulMode = 4;
+let apple = [Math.floor(Math.random() * 11) - 5, Math.floor(Math.random() * 11) - 5];
+let direction = 2.5;
+let shieldDir = [0, -1];
+//type, starting distance, speed, direction
+//for direction 0 = up, 1 = up/right, 2 = right and so on
+let attacks = [];
+attacks.push([0, 15, 1, 0]);
+attacks.push([0, 20, 1, 0]);
+for (let i = 0; i <= 5; i++) {
+attacks.push([0, 35 + i, 4, 2]);
+}
+for (let i = 0; i <= 5; i++) {
+attacks.push([0, 90 + i, 2, 6]);
+}
+for (let i = 0; i <= 5; i++) {
+attacks.push([0, 150 + i, 3, 5]);
+}
+for (let i = 0; i <= 5; i++) {
+attacks.push([0, 210 + i, 4, 7]);
+}
+for (let i = 0; i <= 10; i++) {
+attacks.push([0, 70 + 6 * i, 1, 2]);
+attacks.push([0, 73 + 6 * i, 1, 6]);
+}
+let time = 0;
+let hp = 200000;
+let score = 0;
+
+let soulImg = new Image();
+soulImg.src = "https://greensofa24.github.io/soulsnake/soul.webp";
+
+let shieldImg = new Image();
+shieldImg.src = "https://greensofa24.github.io/deltarune/shieldImg.png";
+
+function renderSoul() {
+ctx.drawImage(soulImg, innerWidth / 2 - 10 + soul[0] * 20, innerHeight / 2 - 10 + soul[1] * 20, 20, 20);
+if (soulMode === 4) {
+drawShield();
+}
+}
+
+function drawShield() {
+/*ctx.save();
+//ctx.rotate(Math.PI);
+ctx.drawImage(shieldImg, innerWidth / 2 - 10 + shieldDir[0] * 20, innerHeight / 2 - 10 + shieldDir[1] * 20, 20, 20);
+ctx.restore();*/
+const time = new Date();
+  ctx.rotate(
+    ((2 * Math.PI) / 60) * time.getSeconds() +
+      ((2 * Math.PI) / 60000) * time.getMilliseconds(),
+  );
+  ctx.translate(105, 0);
+  ctx.fillRect(0, -12, 40, 24);
+  ctx.drawImage(shieldImg, -12, -12);
+}
+
+function drawArrow(distance, direction) {
+let deg = (8 - direction) * 45;
+let rad = deg / 180 * Math.PI;
+ctx.drawImage(soulImg, innerWidth / 2 - 10 - distance * 20 * Math.sin(rad), innerHeight / 2 - 10 - distance * 20 * Math.cos(rad), 20, 20);
+}
+
+function update() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = "black";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+renderSoul();
+
+ctx.lineWidth = 5;
+ctx.strokeStyle = "#04d700";
+ctx.strokeRect(innerWidth / 2 - boxSize / 2, innerHeight / 2 - boxSize / 2, boxSize, boxSize);
+
+ctx.fillStyle = "white";
+ctx.font = "bold 30px Trebuchet MS";
+ctx.textAlign = "center";
+ctx.fillText("HP: " + hp, innerWidth / 2, innerHeight / 2 + 150);
+ctx.fillText("Score: " + score, innerWidth / 2, innerHeight / 2 - 130);
+
+for (let attackId in attacks) {
+let attack = attacks[attackId]
+attack[1] -= attack[2] / 12;
+if (attack[1] <= 0) {
+attacks.splice(attackId, 1);
+score += 1;
+if (attack[3] != coordsToDirection(shieldDir[0], shieldDir[1])) {
+hit();
+}
+}
+if (attack[1] <= 30) {
+drawArrow(attack[1], attack[3]);
+}
+}
+
+}
+
+soulImg.onload = () => {
+update();
+}
+
+function coordsToDirection(x, y) {
+let angle = Math.atan2(y, x); // 
+let direction = Math.round(2 + angle / (Math.PI / 4)) % 8;
+if (direction < 0) {
+direction += 8;
+}
+return direction;
+}
+
+setInterval(function() {update();
+if (keysPressed.has("ArrowLeft")) {
+shieldDir[0] = -1;
+}
+if (keysPressed.has("ArrowRight")) {
+shieldDir[0] = 1;
+}
+if (keysPressed.has("ArrowUp")) {
+shieldDir[1] = -1;
+}
+if (keysPressed.has("ArrowDown")) {
+shieldDir[1] = 1;
+}
+if (keysPressed.size > 0) {
+if (!(keysPressed.has("ArrowLeft") || keysPressed.has("ArrowRight"))) {
+shieldDir[0] = 0;
+}
+if (!(keysPressed.has("ArrowUp") || keysPressed.has("ArrowDown"))) {
+shieldDir[1] = 0;
+}
+}
+}, 10);
+
+function hit() {
+if (hp > 30) {
+hp -= 0.312 * hp + 21.36;
+} else {
+hp -= 12;
+}
+}
+
+let keysPressed = new Set();
+
+addEventListener("keydown", (event) => {
+keysPressed.add(event.key);
+});
+
+addEventListener("keyup", (event) => {
+keysPressed.delete(event.key);
+});
+</script>
+
+</body>
+</html>
